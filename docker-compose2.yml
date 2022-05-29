@@ -1,0 +1,28 @@
+version: '3'
+services:  
+
+  db:
+    image: postgres:12
+    environment:
+      - POSTGRES_PASSWORD=$password
+      - POSTGRES_USER=$user
+      - POSTGRES_DB=$db
+
+  pgbouncer:
+    image: pgbouncer
+    environment:
+       - DB_USER=$user
+       - DB_PASSWORD=$password
+       - DB_HOST=db
+       - DB_NAME=$db 
+       - POOL_MODE=transaction
+       - ADMIN_USERS=postgres,$user
+       - AUTH_USER=pgbouncer
+       - AUTH_QUERY=SELECT p_user, p_password FROM public.lookup($$1)
+       - MAX_CLIENT_CONN=100
+       - DEFAULT_POOL_SIZE=20
+       - MIN_POOL_SIZE=0
+    ports:
+      - "5432:5432"
+    depends_on:
+      - db
