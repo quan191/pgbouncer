@@ -1,28 +1,33 @@
-version: '3'
-services:  
-
-  db:
+version: '3.5'
+services:
+  postgres:
     image: postgres:12
-    volumes:
-      - pg_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=hbZkzny5xrvVH
-      - POSTGRES_USER=dbuser
-      - POSTGRES_DB=test
-
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - POSTGRES_USER=$POSTGRES_USER
+      - POSTGRES_DB=$POSTGRES_DB
+    networks:
+      - postgres
+    restart: unless-stopped
   pgbouncer:
-    image: pgbouncer
+    image: edoburu/pgbouncer
     environment:
-       - DB_USER=dbuser
-       - DB_PASSWORD=hbZkzny5xrvVH
-       - DB_HOST=db
-       - DB_NAME=test 
-       - POOL_MODE=transaction
-       - ADMIN_USERS=postgres,dbuser
+      - DB_USER=$POSTGRES_USER
+      - DB_PASSWORD=$POSTGRES_PASSWORD
+      - DB_HOST=postgres
+      - DB_NAME=$POSTGRES_DB
+      - POOL_MODE=transaction
+      - ADMIN_USERS=postgres,$POSTGRES_USER
+      - MAX_CLIENT_CONN=100
+      - DEFAULT_POOL_SIZE=20
+      - MIN_POOL_SIZE=0
     ports:
       - "5432:5432"
+    networks:
+      - postgres
     depends_on:
-      - db
+      - postgres
+networks:
+  postgres:
+    driver: bridge
 
-volumes:
-  pg_data:
